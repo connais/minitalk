@@ -6,7 +6,7 @@
 /*   By: avaures <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/20 13:58:03 by avaures           #+#    #+#             */
-/*   Updated: 2022/02/11 11:27:02 by avaures          ###   ########.fr       */
+/*   Updated: 2022/02/16 14:42:54 by avaures          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "ft_printf.h"
@@ -51,7 +51,7 @@ int	lennbrhexa(signed int nb)
 	}
 	return (res);
 }
-
+/*
 int	ft_strlen(char *str)
 {
 	int	i;
@@ -61,7 +61,7 @@ int	ft_strlen(char *str)
 		i++;
 	return (i);
 }
-
+*/
 int	ft_putchar(char c)
 {
 	write(1, &c, 1);

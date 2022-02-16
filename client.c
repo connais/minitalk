@@ -5,80 +5,78 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: avaures <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/09 17:21:09 by avaures           #+#    #+#             */
-/*   Updated: 2022/02/14 16:13:07 by avaures          ###   ########.fr       */
+/*   Created: 2022/02/16 14:38:20 by avaures           #+#    #+#             */
+/*   Updated: 2022/02/16 17:27:36 by avaures          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include <signal.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include "LIBFT/libft.h"
-#include "ft_printf/ft_printf.h"
 
-int which_send(char c)
+#include "minitalk.h"
+
+void	send_char(int pid, char c, int i)
 {
-	if (c == '0')
-		return (0);
+	if (c >> i & 1)
+	{
+		if (kill(pid, SIGUSR1) < 0)
+			exit(EXIT_FAILURE);
+	}
 	else
-		return (1);
-}
-char *change_base(int alpha)
-{
-	int	i;
-	int	j;
-	char	*str_number;
-	str_number = malloc(sizeof(char) * 9);
-	if (!str_number)
-		return (NULL);
-	i = 8;
-	j = 0;
-	ft_printf("I : %d\n", i);
-	while (i--)
 	{
-		ft_printf("I : %d\n", i);
-		ft_printf("str_number[%d]\n", j);
-		str_number[j++] = (alpha >> i & 1) + 48;
-		ft_printf("str_number[%d]", j);
+		if (kill(pid, SIGUSR2) < 0)
+			exit(EXIT_FAILURE);
 	}
-	str_number[j] = '\0';
-	return (str_number);
 }
-void client(int identify, char *str)
+
+static void mt_kill(int pid, char *str)
 {
-	int	i;
-	int	j;
-	char	*send;
-	
-	i = 0;
-	j = 0;
-	while(str[i])
+	static int	i = 8;
+	static char	c;
+	static char	*s2;
+
+	if (!s2)
 	{
-		send = change_base(str[i]);
-		if (!send)
-		{
-			free(send);
-			send = NULL;
-		}
-		while (send[j])
-		{
-			if (send[j] == '0')
-				kill(identify, SIGUSR1);
-			else 
-				kill(identify, SIGUSR2);
-			usleep(200);
-			j++;
-		}
-		free(send);
-		i++;
-		j = 0;
+		s2 = str;
+		c = *s2;
 	}
-	return ;
+	if (c)
+	{
+		if (i--)
+			send_char(pid, c, i);
+		else
+		{
+			i = 8;
+			c = *++s2;
+			if (c)
+				mt_kill(pid, str);
+			else
+				kill(pid, SIGUSR2);
+		}
+	}
+	else
+		kill(pid, SIGUSR2);
+}
+
+static void action(int sig, siginfo_t *info, void *context)
+{
+	(void) context;
+	if (sig == SIGUSR2)
+		mt_kill(info->si_pid, "");
+	else if (sig == SIGUSR1)
+	{
+		ft_printf("biit recu !!\n");
+		exit(EXIT_SUCCESS);
+	}
 }
 
 int main(int argc, char **argv)
 {
-	client(ft_atoi(argv[1]), argv[2]);
+	struct sigaction	s_sigaction;
+	
+	mt_kill(ft_atoi(argv[1]), argv[2]);
+	s_sigaction.sa_sigaction = action;
+	s_sigaction.sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, &s_sigaction, 0);
+	sigaction(SIGUSR2, &s_sigaction, 0);
+	while (1)
+		pause();
 	return (0);
-
 }

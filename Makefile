@@ -1,6 +1,6 @@
-SRCLIENT = client.c
+SRCLIENT = client.c tools.c
 
-SRCSERVER = server.c
+SRCSERVER = server.c tools.c
 
 NAME = client
 
